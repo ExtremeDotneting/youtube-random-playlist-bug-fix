@@ -39,11 +39,8 @@ var video = null;
     });
 
     unsafeWindow.setInterval(function () {
-        if (video.duration - video.currentTime < 0.2 || video.ended) {
-            nextRandomVideoHandler();
-        }
         savePlaylistRandomState();
-    }, 1000);
+    }, 5000);
 
 })();
 
