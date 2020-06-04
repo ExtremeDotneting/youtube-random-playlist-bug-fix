@@ -27,23 +27,25 @@ var video = null;
     console.info('jQuery injected.');
 
     video = $(".html5-main-video")[0];
-    doPlaylistWork();
+    $('.ytp-next-button').first().click(function (ev) {
+        nextRandomVideoHandler();
+    });
+
     setInterval(function () {
-        doPlaylistWork();
+        if (video.ended) {
+            nextRandomVideoHandler();
+        }
     }, 1000);
 
 })();
 
 
 //Project funcs
-function doPlaylistWork() {
-
-    if (video.ended) {
-        var nextVideoUrl = getNextVideoUrl();
-        if (!nextVideoUrl.includes('list=')) {
-            var newNextVideoUrl = getRandomVideoUrl();
-            window.location.href = newNextVideoUrl;
-        }
+function nextRandomVideoHandler() {
+    var nextVideoUrl = getNextVideoUrl();
+    if (!nextVideoUrl.includes('list=')) {
+        var newNextVideoUrl = getRandomVideoUrl();
+        window.location.href = newNextVideoUrl;
     }
 }
 
