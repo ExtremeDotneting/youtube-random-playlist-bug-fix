@@ -27,14 +27,22 @@ var video = null;
     console.info('jQuery injected.');
 
     video = $(".html5-main-video")[0];
+
+    restorePlaylistRandomState();
+
+    video.onended = function (e) {
+        nextRandomVideoHandler();
+    };
+
     $('.ytp-next-button').first().click(function (ev) {
         nextRandomVideoHandler();
     });
 
-    setInterval(function () {
-        if (video.ended) {
+    unsafeWindow.setInterval(function () {
+        if (video.duration - video.currentTime < 0.2 || video.ended) {
             nextRandomVideoHandler();
         }
+        savePlaylistRandomState();
     }, 1000);
 
 })();
@@ -43,15 +51,36 @@ var video = null;
 //Project funcs
 function nextRandomVideoHandler() {
     var nextVideoUrl = getNextVideoUrl();
-    if (!nextVideoUrl.includes('list=')) {
+    if (getRandomState() && !nextVideoUrl.includes('list=')) {
         var newNextVideoUrl = getRandomVideoUrl();
+        savePlaylistRandomState();
         window.location.href = newNextVideoUrl;
     }
 }
 
-function getRandomEnabled() {
-    var randomButton = $('#top-level-buttons > ytd-toggle-button-renderer:nth-child(2)').find('button')[0];
+function savePlaylistRandomState() {
+    var value = getRandomState();
+    GM_setValue("pl_state_" + getParameterByName("list"), value);
+    console.log("Saved playlist state: " + value);
+}
+
+function restorePlaylistRandomState() {
+    var value = GM_getValue("pl_state_" + getParameterByName("list"));
+    console.log("pl_state_" + getParameterByName("list"));
+    if (value)
+        setRandomState(value);
+    console.log("Loaded playlist state: " + value);
+}
+
+function getRandomState() {
+    var randomButton = getRandomizeButton();
     return randomButton.ariaPressed;
+}
+
+function setRandomState(state) {
+    if (getRandomState() !== state) {
+        getRandomizeButton().click();
+    }
 }
 
 function getNextVideoUrl() {
@@ -60,6 +89,10 @@ function getNextVideoUrl() {
 
 function setNextVideoUrl(url) {
     $('.ytp-next-button')[0].href = url;
+}
+
+function getRandomizeButton() {
+    return $("#playlist").find('#top-level-buttons > ytd-toggle-button-renderer:nth-child(2)').find('button')[0];
 }
 
 function getRandomVideoUrl() {
@@ -109,6 +142,16 @@ function getRequest(src) {
         });
     });
 
+}
+
+function getParameterByName(name, url) {
+    if (!url) url = unsafeWindow.location.href;
+    name = name.replace(/[\[\]]/g, '\\$&');
+    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
 
 function getRandomInt(max) {
